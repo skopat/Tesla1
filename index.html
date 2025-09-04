@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesla Laddpaus-Cockpit PRO</title>
+<style>
+    body {
+        margin: 0;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: #fff;
+        transition: background 0.5s ease, color 0.5s ease;
+    }
+    header {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid;
+        flex-wrap: wrap;
+    }
+    .left, .right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    header img {
+        height: 28px;
+    }
+    .theme-toggle {
+        background: none;
+        border: 1px solid;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.9em;
+        cursor: pointer;
+        color: inherit;
+    }
+    .status {
+        font-size: 0.9em;
+        opacity: 0.85;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 50vh 50vh;
+        height: calc(100vh - 60px);
+    }
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    .links {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        padding: 15px;
+    }
+    .icon-btn {
+        border-radius: 20px;
+        padding: 18px;
+        text-align: center;
+        transition: transform 0.15s ease, background 0.2s ease;
+        border: 1px solid;
+        text-decoration: none;
+        font-size: 1.1em;
+        color: inherit;
+    }
+    .icon-btn img {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+    }
+
+    /* Dagläge */
+    body.day {
+        background: linear-gradient(-45deg, #000, #111, #1a1a1a, #000);
+        background-size: 400% 400%;
+        animation: gradientMove 15s ease infinite;
+    }
+    body.day header {
+        background-color: rgba(0,0,0,0.7);
+        border-color: #cc0000;
+    }
+    body.day .theme-toggle {
+        border-color: #cc0000;
+    }
+    body.day .icon-btn {
+        background-color: rgba(17,17,17,0.85);
+        border-color: #222;
+    }
+    body.day .icon-btn:hover {
+        background-color: rgba(26,26,26,0.9);
+        transform: scale(1.05);
+        border-color: #cc0000;
+    }
+    body.day .icon-btn img {
+        filter: drop-shadow(0 0 4px rgba(204,0,0,0.6));
+    }
+
+    /* Nattläge */
+    body.night {
+        background: radial-gradient(circle at center, #050505, #000);
+    }
+    body.night header {
+        background-color: rgba(0,0,0,0.85);
+        border-color: #990000;
+    }
+    body.night .theme-toggle {
+        border-color: #990000;
+    }
+    body.night .icon-btn {
+        background-color: #111;
+        border-color: #222;
+    }
+    body.night .icon-btn:hover {
+        background-color: #1a1a1a;
+        transform: scale(1.07);
+        border-color: #990000;
+    }
+    body.night .icon-btn img {
+        filter: drop-shadow(0 0 4px rgba(153,0,0,0.6));
+    }
+
+    @keyframes gradientMove {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+    }
+</style>
+<script>
+    function setTheme(mode) {
+        document.body.classList.remove('day', 'night');
+        document.body.classList.add(mode);
+        localStorage.setItem('teslaTheme', mode);
+    }
+
+    function toggleTheme() {
+        if (document.body.classList.contains('day')) {
+            setTheme('night');
+        } else {
+            setTheme('day');
+        }
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const date = now.toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' });
+        const time = now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('clock').textContent = `${date} ${time}`;
+    }
+
+    function updateBattery() {
+        // Simulerad batteristatus – här kan Tesla API kopplas in
+        const batteryLevel = 72; // %
+        const charging = true;
+        document.getElementById('battery').textContent = charging 
+            ? `🔋 ${batteryLevel}% – Laddar` 
+            : `🔋 ${batteryLevel}% – Ej laddning`;
+    }
+
+    // Initiera tema
+    const savedTheme = localStorage.getItem('teslaTheme');
+    if (savedTheme) {
+        setTheme(savedTheme);
+    } else {
+        const hour = new Date().getHours();
+        if (hour >= 7 && hour < 19) {
+            setTheme('day');
+        } else {
+            setTheme('night');
+        }
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+    updateBattery();
+</script>
+</head>
+<body>
+<header>
+    <div class="left">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Tesla_Motors.svg" alt="Tesla Logo">
+        <span id="clock"></span>
+    </div>
+    <div class="right">
+        <span id="battery" class="status"></span>
+        <button class="theme-toggle" onclick="toggleTheme()">Byt tema</button>
+    </div>
+</header>
+<div class="grid">
+    <!-- Stor ruttplanering -->
+    <iframe src="https://abetterrouteplanner.com" title="ABRP"></iframe>
+
+    <!-- Väder -->
+    <iframe src="https://www.yr.no" title="Väder"></iframe>
+
+    <!-- Laddstationer -->
+    <iframe src="https://chargefinder.com" title="ChargeFinder"></iframe>
+
+    <!-- Snabblänkar -->
+    <div class="links">
+        <a href="https://open.spotify.com" target="_blank" class="icon-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" alt="Spotify">
+            Spotify
+        </a>
+        <a href="https://www.youtube.com" target="_blank" class="icon-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" alt="YouTube">
+            YouTube
+        </a>
+        <a href="https://www.svtplay.se" target="_blank" class="icon-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/News_icon.svg" alt="SVT Play">
+            SVT Play
+        </a>
+        <a href="https://www.plugshare.com" target="_blank" class="icon-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Electric_bolt_icon.svg" alt="PlugShare">
+            PlugShare
+        </a>
+    </div>
+</div>
+</body>
+</html>
